@@ -132,7 +132,6 @@ func DeleteTag(c *gin.Context) {
 			code = e.ERROR_NOT_EXIST_TAG
 		}
 	}
-
 	c.JSON(http.StatusOK, gin.H{
 		"code": code,
 		"msg":  e.GetMsg(code),
