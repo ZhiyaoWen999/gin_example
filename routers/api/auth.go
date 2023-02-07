@@ -1,10 +1,10 @@
 package api
 
 import (
-	"gin_example/models"
+	"gin_example/pkg/app"
 	"gin_example/pkg/e"
-	"gin_example/pkg/logging"
 	"gin_example/pkg/util"
+	"gin_example/service/auth_service"
 	"net/http"
 
 	"github.com/astaxie/beego/validation"
@@ -24,39 +24,40 @@ type auth struct {
 // @Failure 500 {object} app.Response
 // @Router /auth [get]
 func GetAuth(c *gin.Context) {
-	username := c.Query("username")
-	password := c.Query("password")
-
+	appG := app.Gin{C: c}
 	valid := validation.Validation{}
+
+	username := c.PostForm("username")
+	password := c.PostForm("password")
+
 	a := auth{Username: username, Password: password}
 	ok, _ := valid.Valid(&a)
 
-	data := make(map[string]interface{})
-	code := e.INVALID_PARAMS
-	if ok {
-		isExist := models.CheckAuth(username, password)
-		if isExist {
-			token, err := util.GenerateToken(username, password)
-			if err != nil {
-				code = e.ERROR_AUTH_TOKEN
-			} else {
-				data["token"] = token
-
-				code = e.SUCCESS
-			}
-
-		} else {
-			code = e.ERROR_AUTH
-		}
-	} else {
-		for _, err := range valid.Errors {
-			logging.Info(err.Key, err.Message)
-		}
+	if !ok {
+		app.MarkErrors(valid.Errors)
+		appG.Response(http.StatusBadRequest, e.INVALID_PARAMS, nil)
+		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{
-		"code": code,
-		"msg":  e.GetMsg(code),
-		"data": data,
+	authService := auth_service.Auth{Username: username, Password: password}
+	isExist, err := authService.Check()
+	if err != nil {
+		appG.Response(http.StatusInternalServerError, e.ERROR_AUTH_CHECK_TOKEN_FAIL, nil)
+		return
+	}
+
+	if !isExist {
+		appG.Response(http.StatusUnauthorized, e.ERROR_AUTH, nil)
+		return
+	}
+
+	token, err := util.GenerateToken(username, password)
+	if err != nil {
+		appG.Response(http.StatusInternalServerError, e.ERROR_AUTH_TOKEN, nil)
+		return
+	}
+
+	appG.Response(http.StatusOK, e.SUCCESS, map[string]string{
+		"token": token,
 	})
 }
