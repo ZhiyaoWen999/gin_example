@@ -4,7 +4,6 @@ import (
 	"gin_example/pkg/app"
 	"gin_example/pkg/e"
 	"gin_example/pkg/export"
-	"gin_example/pkg/logging"
 	"gin_example/pkg/setting"
 	"gin_example/pkg/util"
 	"gin_example/service/tag_service"
@@ -228,29 +227,29 @@ func ExportTag(c *gin.Context) {
 	})
 }
 
-// @Summary Import article tag
-// @Produce  json
-// @Param file body file true "Excel File"
-// @Success 200 {object} app.Response
-// @Failure 500 {object} app.Response
-// @Router /api/v1/tags/import [post]
-func ImportTag(c *gin.Context) {
-	appG := app.Gin{C: c}
+// // @Summary Import article tag
+// // @Produce  json
+// // @Param file body file true "Excel File"
+// // @Success 200 {object} app.Response
+// // @Failure 500 {object} app.Response
+// // @Router /api/v1/tags/import [post]
+// func ImportTag(c *gin.Context) {
+// 	appG := app.Gin{C: c}
 
-	file, _, err := c.Request.FormFile("file")
-	if err != nil {
-		logging.Warn(err)
-		appG.Response(http.StatusInternalServerError, e.ERROR, nil)
-		return
-	}
+// 	file, _, err := c.Request.FormFile("file")
+// 	if err != nil {
+// 		logging.Warn(err)
+// 		appG.Response(http.StatusInternalServerError, e.ERROR, nil)
+// 		return
+// 	}
 
-	tagService := tag_service.Tag{}
-	err = tagService.Import(file)
-	if err != nil {
-		logging.Warn(err)
-		appG.Response(http.StatusInternalServerError, e.ERROR_IMPORT_TAG_FAIL, nil)
-		return
-	}
+// 	tagService := tag_service.Tag{}
+// 	err = tagService.Import(file)
+// 	if err != nil {
+// 		logging.Warn(err)
+// 		appG.Response(http.StatusInternalServerError, e.ERROR_IMPORT_TAG_FAIL, nil)
+// 		return
+// 	}
 
-	appG.Response(http.StatusOK, e.SUCCESS, nil)
-}
+// 	appG.Response(http.StatusOK, e.SUCCESS, nil)
+// }
